@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum TargetType {
     PROJECT("project", "项目"),
     TASK("task", "任务"),
-    REQUIREMENT("requirement", "需求");
+    REQUIREMENT("requirement", "需求"),
+    DEFECT("defect", "缺陷");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final String code;

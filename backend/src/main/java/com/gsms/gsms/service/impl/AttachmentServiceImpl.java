@@ -11,10 +11,12 @@ import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.model.entity.Attachment;
+import com.gsms.gsms.model.entity.Defect;
 import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.repository.DefectMapper;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
 import com.gsms.gsms.model.enums.TargetType;
 import com.gsms.gsms.model.enums.errorcode.AttachmentErrorCode;
@@ -93,6 +95,9 @@ public class AttachmentServiceImpl implements AttachmentService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private DefectMapper defectMapper;
 
     @Autowired
     private StorageService storageService;  // 使用 @Primary 标注的动态存储服务
@@ -365,6 +370,9 @@ public class AttachmentServiceImpl implements AttachmentService {
             case REQUIREMENT:
                 // TODO: 需求模块暂未实现
                 throw new BusinessException(AttachmentErrorCode.ATTACHMENT_TARGET_INVALID);
+            case DEFECT:
+                validateDefectAccess(targetId, userId, needUploadPermission);
+                break;
             default:
                 throw new BusinessException(AttachmentErrorCode.ATTACHMENT_TARGET_INVALID);
         }
@@ -417,6 +425,29 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     /**
+     * 验证缺陷访问权限
+     */
+    private void validateDefectAccess(Long defectId, Long userId, boolean needUploadPermission) {
+        Defect defect = defectMapper.selectById(defectId);
+        if (defect == null) {
+            throw new BusinessException(AttachmentErrorCode.ATTACHMENT_TARGET_INVALID);
+        }
+
+        // 检查用户是否是项目成员
+        List<Long> projectIds = projectMemberMapper.selectProjectIdsByUserId(userId);
+        if (!projectIds.contains(defect.getProjectId())) {
+            throw new BusinessException(AttachmentErrorCode.ATTACHMENT_NO_PERMISSION);
+        }
+
+        // 如果需要上传权限，检查是否是创建者或项目经理
+        if (needUploadPermission) {
+            if (!canUploadToDefect(defect, userId)) {
+                throw new BusinessException(AttachmentErrorCode.ATTACHMENT_NO_PERMISSION);
+            }
+        }
+    }
+
+    /**
      * 检查用户是否可以上传到项目（创建者或项目经理）
      */
     private boolean canUploadToProject(Project project, Long userId) {
@@ -448,6 +479,27 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         // 检查是否是项目经理
         List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(task.getProjectId());
+        for (ProjectMember member : members) {
+            if (member.getUserId().equals(userId) &&
+                member.getRoleType().equals(ProjectMemberRole.PROJECT_MANAGER.getCode())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 检查用户是否可以上传到缺陷（缺陷创建者或项目经理）
+     */
+    private boolean canUploadToDefect(Defect defect, Long userId) {
+        // 检查是否是缺陷创建者
+        if (defect.getCreatorId().equals(userId)) {
+            return true;
+        }
+
+        // 检查是否是项目经理
+        List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(defect.getProjectId());
         for (ProjectMember member : members) {
             if (member.getUserId().equals(userId) &&
                 member.getRoleType().equals(ProjectMemberRole.PROJECT_MANAGER.getCode())) {

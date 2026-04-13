@@ -13,9 +13,11 @@ export interface PageQuery {
   pageSize?: number
 }
 
-// 分页响应
+// 分页响应（后端 PageResult 结构：code + message + data + total + pageNum + pageSize）
 export interface PageResult<T> {
-  records: T[]
+  code: number
+  message: string
+  data: T[]
   total: number
   pageNum: number
   pageSize: number

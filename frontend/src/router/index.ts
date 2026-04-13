@@ -49,6 +49,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '项目甘特图', requiresAuth: true, permissions: ['PROJECT_VIEW'] },
       },
       {
+        path: 'projects/:id/defects',
+        name: 'ProjectDefects',
+        component: () => import('@/views/defect/DefectList.vue'),
+        meta: { title: '缺陷管理', requiresAuth: true, permissions: ['DEFECT_VIEW'] },
+      },
+      {
         path: 'statistics/project',
         name: 'ProjectStatistics',
         component: () => import('@/views/statistics/ProjectStatistics.vue'),

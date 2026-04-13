@@ -87,7 +87,7 @@
 
       <!-- 缺陷 -->
       <div v-else-if="activeModule === 'defect'" class="module-content">
-        <el-alert title="缺陷视图开发中" type="info" :closable="false" />
+        <DefectList :project-id="projectId" />
       </div>
 
       <!-- 报表 -->
@@ -496,6 +496,7 @@ import ProjectInfoSidebar from '@/components/ProjectInfoSidebar.vue'
 import UnifiedWorkItemView from '@/components/UnifiedWorkItemView.vue'
 import RequirementsView from '@/components/RequirementsView.vue'
 import PlanningView from '@/components/PlanningView.vue'
+import DefectList from '@/views/defect/DefectList.vue'
 import ProjectMemberView from './ProjectMemberView.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import ProjectAttachmentList from '@/components/ProjectAttachmentList.vue'

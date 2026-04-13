@@ -128,3 +128,15 @@ export const getTaskDetail = (id: number) => {
 export const getSubtasks = (parentId: number) => {
   return request.get(`/tasks/${parentId}/subtasks`)
 }
+
+// 获取父任务（需求）列表
+export const getParentTasks = (projectId: number) => {
+  return request.get<any, { list: TaskInfo[], total: number }>('/tasks/search', {
+    params: {
+      projectId, // 项目ID
+      parentId: 0, // 获取所有父任务（需求）
+      pageNum: 1,
+      pageSize: 1000
+    }
+  })
+}
